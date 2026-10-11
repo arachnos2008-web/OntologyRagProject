@@ -5,7 +5,7 @@
 
 ## Day 1 — Oct 14, 8:30 AM–1:30 PM
 
-Students bring a laptop, a Google account and **their own LLM API key from any provider**. Each team also gets a graph store: a free **Neo4j Aura** instance, or lookup tables (see the Student Setup Guide).
+Students bring a laptop, a Google account and **their own LLM API key from any provider**. Each team uses either a free **Neo4j Aura** instance (`day2_starter_notebook.ipynb`) or, if Aura is not possible, the **no-Neo4j starter** (`day2_starter_notebook_no_neo4j.ipynb`), which keeps the graph in ready-made lookup tables. The two starters differ only in the graph store; the registry task and the judging are identical.
 
 | Time | Activity | Format |
 |---|---|---|
@@ -13,8 +13,8 @@ Students bring a laptop, a Google account and **their own LLM API key from any p
 | 8:45–9:15 | **Embeddings and similarity search** | Demo (Week 1 notebook) |
 | 9:15–9:45 | **RAG pipeline and where it breaks:** the exact conflated answer | Demo (Week 2 notebook) |
 | 9:45–10:15 | **Grounding the agent:** same query, graph-backed, now correct | Demo (Week 3 notebook) |
-| 10:15–10:30 | Break | Teams create their Aura instance (or choose lookup tables) |
-| 10:30–12:30 | **Hands-on lab.** Open `day2_starter_notebook.ipynb` in Colab and: (1) plug in your own LLM key by editing the `call_llm` cell; (2) connect the graph store; (3) run the starter top to bottom; (4) add the **Alumnus** pattern and watch public question PP3 flip from "no recorded link" to "connected" | Guided, mentors roaming |
+| 10:15–10:30 | Break | Teams create their Aura instance, or pick the no-Neo4j starter |
+| 10:30–12:30 | **Hands-on lab.** Open `day2_starter_notebook.ipynb` in Colab and: (1) plug in your own LLM key by editing the `call_llm` cell; (2) connect Neo4j (skip this with the no-Neo4j starter); (3) run the starter top to bottom; (4) add the **Alumnus** pattern and watch public question PP3 flip from "no recorded link" to "connected" | Guided, mentors roaming |
 | 12:30–12:45 | Buffer for stragglers | Mentors |
 | 12:45–1:15 | **Day 2 problem statement, rubric, submission deadline, team formation** | You present |
 | 1:15–1:30 | Build-window logistics, Q&A | |
@@ -38,7 +38,7 @@ All building happens between the two days.
 3. Runs the **public pack** (8 adversarial + 3 positive-control questions) against baseline and grounded, and fills in an outcomes table: did the baseline fabricate, was the grounded answer correct, and why.
 4. States **one failure it still has**.
 
-**Extra work for every team.** Run on its own LLM provider (edit `call_llm`). A team that cannot use Neo4j replaces the graph with **lookup tables** that keep the same `graph_check` contract.
+**Extra work for every team.** Run on its own LLM provider (edit `call_llm`). Teams without Neo4j use the no-Neo4j starter; nobody builds lookup tables, so everyone's effort goes into the registry.
 
 **Deliverable.** The notebook, run top to bottom on a fresh runtime, with the registry, outcomes table and remaining-failure note filled in. **Deadline: 2 hours before the Day 2 session** (e.g., 12:00 PM).
 
@@ -57,7 +57,7 @@ All building happens between the two days.
 
 ### Judging (two tiers)
 
-- **Tier 1, batch (before 2:00 PM, 70% of the rubric).** Save each team's registry as JSON and run `python day2_offline_check.py team_registry.json`. It reproduces the hidden-pack verdicts from the registry alone, with no Neo4j, LLM or provider, so it works for every team whatever graph store or LLM they used. Enter the marks in `day2_judging_scorecard.xlsx`; borderline teams are also run live.
+- **Tier 1, batch (before 2:00 PM, 70% of the rubric).** Run `python day2_score_submissions.py` on the teams' submitted notebooks. It reads each registry (without running the notebook) and reproduces the hidden-pack verdicts from the registry alone, with no Neo4j, LLM or provider, so it works for every team whichever starter and LLM they used. Enter the marks in `day2_judging_scorecard.xlsx`; borderline teams are also run live.
 - **Tier 2, live checkpoint (30%, about 3 min per team).** The team shows its registry and outcomes table and explains one row you choose.
 
 | Time | Activity |
