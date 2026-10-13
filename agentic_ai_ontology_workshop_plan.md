@@ -1,23 +1,23 @@
 # IEEE-CIS Amrita — Agentic AI + Knowledge Grounding Workshop
-**Oct 14–15, 2026 · about 25 teams, five datasets (about five teams on each)**
+**Oct 14–15, 2026 · 40–50 students (about 10–12 teams of 4–5)**
 
 ---
 
-## Day 1 — Oct 14, 9:00 AM–1:30 PM
+## Day 1 — Oct 14, 8:30 AM–1:30 PM
 
-Students bring a laptop, a Google account and **their own LLM API key from any provider**. Each team picks **one of five starter notebooks**, one per dataset (table below), and uses either a free **Neo4j Aura** instance (`starter_<code>.ipynb`, for example `starter_ORD.ipynb`) or, if Aura is not possible, the **no-Neo4j** version of the same starter (`starter_<code>_no_neo4j.ipynb`), which keeps the graph in ready-made lookup tables. The two versions differ only in the graph store. The five datasets differ only in their subject matter, records and questions: the registry task, the structure and the judging are identical. Cap each dataset at about five teams (a sign-up sheet at team formation) and seat teams on the same dataset apart.
+Students bring a laptop, a Google account and **their own LLM API key from any provider**. Each team uses either a free **Neo4j Aura** instance (`day2_starter_notebook.ipynb`) or, if Aura is not possible, the **no-Neo4j starter** (`day2_starter_notebook_no_neo4j.ipynb`), which keeps the graph in ready-made lookup tables. The two starters differ only in the graph store; the registry task and the judging are identical.
 
 | Time | Activity | Format |
 |---|---|---|
-| 9:00–9:15 | **Warm-up: confidence check.** Students rate the 16 key terms (concept map page), then see how they connect | Interactive |
-| 9:15–9:30 | **Opening hook:** an AI agent confidently states a false fact by merging two unrelated records | Demo |
-| 9:30–10:00 | **Embeddings and similarity search** | Demo (Week 1 notebook) |
-| 10:00–10:30 | **RAG pipeline and where it breaks:** the exact conflated answer | Demo (Week 2 notebook) |
-| 10:30–11:00 | **Grounding the agent:** same query, graph-backed, now correct | Demo (Week 3 notebook) |
-| 11:00–11:15 | Break | Teams create their Aura instance, or pick the no-Neo4j starter |
-| 11:15–12:30 | **Reference solution walkthrough.** You take the class through a finished solution on the campus example dataset (`day2_reference_solution.ipynb`), which no team uses: (1) the pattern registry, one entry at a time with its example and reason; (2) why each Kind 2 candidate (place, level, amount, period) is rejected; (3) the public question pack, reading the Baseline, Grounded, Graph and Must say lines; (4) filling in the `OUTCOMES` table (what `baseline_fabricated`, `grounded_correct` and `explanation` mean, with a good and a weak explanation side by side); (5) the one remaining failure. Students follow on screen; nobody builds in this session | You present, Q&A |
-| 12:30–1:10 | **Day 2 problem statement, rubric, submission deadline, team formation** | You present |
-| 1:10–1:30 | Build-window logistics, Q&A | |
+| 8:30–8:45 | **Opening hook:** an AI agent confidently states a false fact by merging two unrelated records | Demo |
+| 8:45–9:15 | **Embeddings and similarity search** | Demo (Week 1 notebook) |
+| 9:15–9:45 | **RAG pipeline and where it breaks:** the exact conflated answer | Demo (Week 2 notebook) |
+| 9:45–10:15 | **Grounding the agent:** same query, graph-backed, now correct | Demo (Week 3 notebook) |
+| 10:15–10:30 | Break | Teams create their Aura instance, or pick the no-Neo4j starter |
+| 10:30–12:30 | **Hands-on lab.** Open `day2_starter_notebook.ipynb` in Colab and: (1) plug in your own LLM key by editing the `call_llm` cell; (2) connect Neo4j (skip this with the no-Neo4j starter); (3) run the starter top to bottom; (4) add the **Alumnus** pattern and watch public question PP3 flip from "no recorded link" to "connected" | Guided, mentors roaming |
+| 12:30–12:45 | Buffer for stragglers | Mentors |
+| 12:45–1:15 | **Day 2 problem statement, rubric, submission deadline, team formation** | You present |
+| 1:15–1:30 | Build-window logistics, Q&A | |
 
 ---
 
@@ -28,27 +28,17 @@ All building happens between the two days.
 ### Problem: "Complete the grounding"
 *Build an agent that tells the truth about what it doesn't know.*
 
-**Scenario.** Each team works on one of five operational datasets of about 140 records in 12 categories. Different departments describe different events in similar words. Some records carry an identifier (an order number, a patient ID, an invoice number...); where that ID repeats, it *is* the same event. The task is to tell the two cases apart.
+**Scenario.** Campus operations and student services: 179 records, 14 categories. Different departments describe different events in similar words. Some records name a person, club or ticket (`Student S001`, `Club RC-1`, `HMT-58`); where that ID repeats, it *is* the same event. The task is to tell the two cases apart.
 
-| Code | Dataset | Given pattern | Guided pattern (PP3), built in the build window |
-|---|---|---|---|
-| ORD | Order / inventory / delivery | Order | Customer |
-| HR | Employee / contractor / manager | Employee | Contractor |
-| RISK | Risk / incident / problem | Incident | Problem |
-| PAY | Payment / shipment / invoice | Invoice | Shipment |
-| CLN | Patient / prescription / clinician | Patient | Prescription |
-
-All five have the same shape, so scores are comparable: four Kind 1 families (one given, three to find), four Kind 2 traps, a public pack of 8 adversarial and 3 positive questions and a hidden pack of 9 and 4. The public and hidden questions, the identifiers and the regexes all differ between datasets, so a registry copied from a team on another dataset does not work. The campus dataset (Student / Alumnus / Club / Ticket) stays as the Day 1 demonstration and the reference.
-
-**Given to each team (its dataset's starter).** Retrieval, a plain baseline RAG, graph building from a **pattern registry**, and a grounded answer step. The registry holds **one** pattern: the dataset's first ID regex (the "given pattern" in the table).
+**Given to each team (`day2_starter_notebook.ipynb`).** Retrieval, a plain baseline RAG, graph building from a **pattern registry**, and a grounded answer step. The registry holds **one** pattern: the Student ID regex.
 
 **Build window — each team**
-1. Decides which other strings identify one event (**Kind 1**: person, case, order or document IDs) and which are incidental fields reused across unrelated events (**Kind 2**: a place, a level or block, an amount or count, a period).
+1. Decides which other strings identify one event (**Kind 1**: person IDs, club codes, ticket numbers) and which are incidental fields reused across unrelated events (**Kind 2**: room, block, amount, semester).
 2. Adds its patterns to the registry, each with an example and a reason, and lists the lookalikes it **rejected** and why.
 3. Runs the **public pack** (8 adversarial + 3 positive-control questions) against baseline and grounded, and fills in an outcomes table: did the baseline fabricate, was the grounded answer correct, and why.
 4. States **one failure it still has**.
 
-**Extra work for every team.** Run on its own LLM provider (edit `call_llm`). Teams without Neo4j use the no-Neo4j version of their starter; nobody builds lookup tables, so everyone's effort goes into the registry.
+**Extra work for every team.** Run on its own LLM provider (edit `call_llm`). Teams without Neo4j use the no-Neo4j starter; nobody builds lookup tables, so everyone's effort goes into the registry.
 
 **Deliverable.** The notebook, run top to bottom on a fresh runtime, with the registry, outcomes table and remaining-failure note filled in. **Deadline: 2 hours before the Day 2 session** (e.g., 12:00 PM).
 
@@ -67,16 +57,16 @@ All five have the same shape, so scores are comparable: four Kind 1 families (on
 
 ### Judging (two tiers)
 
-- **Tier 1, batch (before 2:00 PM, 70% of the rubric).** Run `python day2_score_submissions.py team_*.ipynb` on the teams' submitted notebooks. It reads each registry and each team's dataset (without running the notebook), reproduces that dataset's hidden-pack verdicts from the registry alone, checks the records were not edited, and flags near-identical rationales between teams. No Neo4j, LLM or provider is needed, so it works for every team whichever starter and LLM they used. Enter the marks in `day2_judging_scorecard.xlsx`; borderline teams are also run live.
+- **Tier 1, batch (before 2:00 PM, 70% of the rubric).** Run `python day2_score_submissions.py` on the teams' submitted notebooks. It reads each registry (without running the notebook) and reproduces the hidden-pack verdicts from the registry alone, with no Neo4j, LLM or provider, so it works for every team whichever starter and LLM they used. Enter the marks in `day2_judging_scorecard.xlsx`; borderline teams are also run live.
 - **Tier 2, live checkpoint (30%, about 3 min per team).** The team shows its registry and outcomes table and explains one row you choose.
 
 | Time | Activity |
 |---|---|
 | 2:00–2:10 | Instructions, demo order |
-| 2:10–~3:00 | Live checkpoints: 25 teams, so two judge tables or ~2 min per team (see the runbook) |
+| 2:10–~3:00 | Live checkpoints, ~3 min per team |
 | 3:00–3:20 | Judges' deliberation (co-judges score independently, then reconcile) |
 | 3:20–3:30 | Results and wrap |
 
 ### Before the event
-- Run the hidden pack once against each of the five starters' baselines with a real key (`day2_add_hidden_pack.py ... --baseline-only`), and one starter end-to-end with an Aura instance, to see how often the baseline fabricates. Notebooks were verified with mock services only.
+- Run the public and hidden packs once against the starter's baseline with a real key and Aura instance, to see how often the baseline fabricates. Notebooks were verified with mock services only.
 - Confirm the submission mechanism and co-judges.

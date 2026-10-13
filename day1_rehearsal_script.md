@@ -2,15 +2,13 @@
 
 Goal: verify every live demo works end to end on a fresh Colab runtime, so nothing breaks live in front of 50+ students.
 
-**Track to test:** Colab free tier, `all-MiniLM-L6-v2` for embeddings, your notebooks (Weeks 1-3 pattern) for RAG/Graph RAG, and the campus reference solution (`day2_reference_solution.ipynb`) for the walkthrough.
-
-Times below are minutes from 9:00 AM. The first 15 minutes are the confidence-check warm-up (the concept map page), so the demos start at 0:15.
+**Track to test:** Colab free tier, `all-MiniLM-L6-v2` for embeddings, your notebooks (Weeks 1-3 pattern) for RAG/Graph RAG, and the Day 2 starter for the hands-on lab.
 
 Run the *entire* rehearsal once from a cold start. Note timing and any errors per step.
 
 ---
 
-## Segment 1 (0:15–0:30) — Opening hook: the false-narrative demo
+## Segment 1 (0:00–0:15) — Opening hook: the false-narrative demo
 
 **What to rehearse:** your Week 2 "stock replenishment" failure case, live, cold-started (i.e., run it as if you've never run it before — this is exactly how it'll feel live on Oct 14).
 
@@ -23,7 +21,7 @@ Checklist:
 
 ---
 
-## Segment 2 (0:30–1:00) — Embeddings & similarity (Week 1 material)
+## Segment 2 (0:15–0:45) — Embeddings & similarity (Week 1 material)
 
 **What to rehearse:** the cosine similarity demo + the `[7]`/`[8]` misranking finding from your own Day 1.
 
@@ -35,7 +33,7 @@ Checklist:
 
 ---
 
-## Segment 3 (1:00–1:30) — RAG pipeline + the break (Week 2 material)
+## Segment 3 (0:45–1:15) — RAG pipeline + the break (Week 2 material)
 
 **What to rehearse:** retrieval + generation, then the deliberate break — in your Colab notebook.
 
@@ -46,7 +44,7 @@ Checklist:
 
 ---
 
-## Segment 4 (1:30–2:00) — The fix: Graph RAG (Week 3 material)
+## Segment 4 (1:15–1:45) — The fix: Graph RAG (Week 3 material)
 
 **What to rehearse:** the Neo4j Aura connection + the `connected_order: None` proof — from the Colab notebook.
 
@@ -57,20 +55,16 @@ Checklist:
 
 ---
 
-## Segment 5 (2:15–3:30) — Reference solution walkthrough
+## Segment 5 (2:00-3:30) - Hands-on lab
 
-You take the class through `day2_reference_solution.ipynb` (the campus example dataset, which no team uses). Students follow on screen and do not build. Do not use the five `reference_<code>.ipynb` files here: they solve the teams' own datasets.
-
-Run order to rehearse: registry and its reasons, the Kind 2 candidates that are rejected, the public pack, the `OUTCOMES` table, the remaining failure.
+Students open `day2_starter_notebook.ipynb`, run it, and do one guided step: add the Alumnus pattern and see the public positive control PP3 flip to "connected".
 
 Checklist:
-- [ ] Time the notebook from a cold start on a fresh Colab runtime, with its saved output cleared. The walkthrough has 75 minutes, so each step should take 10 to 15 minutes of talking, not running
-- [ ] With a **fresh Aura Free account**, confirm the graph-building cell finishes and prints per-pattern link counts (or use the no-Neo4j version if you would rather not depend on Aura live)
-- [ ] Before the guided step, PP3 shows "NOT connected" in `run_pack(PUBLIC_POSITIVE)`; after adding the Alumnus pattern and re-running the graph cell, it shows "CONNECTED via Alumnus A002". Rehearse this flip with `day2_starter_notebook.ipynb` before you open the reference solution: it is the moment students see why a pattern matters
-- [ ] Have a saved run of the whole notebook ready in case the LLM or Aura is slow or down on the day
-- [ ] Prepare the `OUTCOMES` explanation slide: the three fields (`baseline_fabricated`, `grounded_correct`, `explanation`), one good and one weak explanation side by side. A student tester found this the least clear part of the task
-- [ ] **Pilot the baseline:** run the public and hidden packs through `baseline_rag_answer` and note how often it actually fabricates. On the five datasets it ranged from 0 to 4 wrong "yes" answers out of 8 on the public pack, so frame "baseline fails, graph works" with care
+- [ ] Time the starter notebook from a cold start on a fresh Colab runtime (no cached anything). This is your realistic per-student setup time.
+- [ ] With a **fresh Aura Free account**, confirm the graph-building cell finishes and prints per-pattern link counts
+- [ ] Before the guided step, PP3 shows "NOT connected" in `run_pack(PUBLIC_POSITIVE)`; after adding the Alumnus pattern and re-running the graph cell, it shows "CONNECTED via Alumnus A002"
 - [ ] If using a shared/pooled API key: have a few people (or scripted parallel calls) hit the same key at once and confirm it does not rate-limit into failure
+- [ ] **Pilot the baseline:** run the public and hidden packs through `baseline_rag_answer` and note how often it actually fabricates. Do the same in the reference solution. This tells you how strongly to frame "baseline fails, graph works" on Day 1.
 
 ---
 
