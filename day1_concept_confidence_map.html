@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 1 Warm-Up — Confidence &amp; Connections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root{
+    --bg: #0a0d14;
+    --panel: #121723;
+    --panel-2: #171d2c;
+    --border: #262e42;
+    --text: #e7eaf2;
+    --text-dim: #9aa4bd;
+    --accent: #7c9cff;
+    --accent-dim: #3d4a7a;
+    --grey: #3a4257;
+    --green: #30c97a;
+    --green-dim: #0f3324;
+    --amber: #f2a93b;
+    --amber-dim: #3a2a0d;
+    --red: #ef5a6f;
+    --red-dim: #3a1420;
+    --radius: 16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(1200px 800px at 20% -10%, #141b2e 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .wrap{ max-width: 1400px; margin: 0 auto; padding: 28px 32px 60px; }
+
+  header{ display:flex; justify-content:space-between; align-items:flex-start; gap:24px; margin-bottom: 22px; flex-wrap: wrap; }
+  .title-block h1{ font-size: clamp(22px, 2.6vw, 34px); margin: 0 0 6px; font-weight: 800; letter-spacing: -0.01em; }
+  .title-block p{ margin:0; color: var(--text-dim); font-size: 15px; max-width: 640px; line-height:1.5; }
+  .badge{ display:inline-flex; align-items:center; gap:8px; background: var(--panel); border:1px solid var(--border); border-radius: 999px; padding: 8px 14px; font-size:13px; color: var(--text-dim); font-weight:600;}
+  .badge .dot{ width:8px; height:8px; border-radius:50%; background: var(--accent); box-shadow: 0 0 10px var(--accent);}
+
+  .legend{ display:flex; gap:18px; flex-wrap:wrap; margin: 6px 0 26px; }
+  .legend span{ display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-dim); font-weight:600; }
+  .legend i{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+  .legend .g{background:var(--green)} .legend .a{background:var(--amber)} .legend .r{background:var(--red)} .legend .n{background:var(--grey)}
+
+  .toolbar{ display:flex; gap:12px; margin: 0 0 24px; flex-wrap:wrap; }
+  button.action{
+    appearance:none; border:1px solid var(--border); background: var(--panel);
+    color: var(--text); font-family:inherit; font-weight:700; font-size:14px;
+    padding: 12px 20px; border-radius: 12px; cursor:pointer; transition: all .15s ease;
+    display:inline-flex; align-items:center; gap:10px;
+  }
+  button.action:hover{ border-color: var(--accent); background: var(--panel-2); transform: translateY(-1px); }
+  button.primary{ background: linear-gradient(135deg, #6e8bff, #7c5cff); color:#0a0d14; border:none; }
+  button.primary:hover{ filter:brightness(1.08); transform: translateY(-1px); }
+  button.action:active{ transform: translateY(0); }
+
+  #gridView{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 1100px){ #gridView{ grid-template-columns: repeat(3,1fr);} }
+  @media (max-width: 760px){ #gridView{ grid-template-columns: repeat(2,1fr);} }
+
+  .card{
+    background: var(--panel); border: 2px solid var(--border); border-radius: var(--radius);
+    padding: 18px 16px 14px; position:relative; cursor:pointer; transition: all .22s ease;
+    display:flex; flex-direction:column; justify-content:space-between; min-height: 128px;
+  }
+  .card:hover{ transform: translateY(-3px); border-color: var(--accent-dim); box-shadow: 0 10px 24px -8px rgba(0,0,0,.5); }
+  .card .num{ position:absolute; top:10px; right:14px; font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-dim); opacity:.6;}
+  .card h3{ margin:0; font-size:17px; font-weight:700; line-height:1.25; padding-right:10px; }
+  .card .hint{ font-size:12px; color: var(--text-dim); margin-top:6px; }
+
+  .dots{ display:flex; gap:8px; margin-top:14px; }
+  .dotbtn{
+    width:28px; height:28px; border-radius:50%; border:2px solid var(--border); cursor:pointer;
+    background: transparent; transition: all .15s ease; flex-shrink:0;
+  }
+  .dotbtn.green{ border-color: var(--green); } .dotbtn.green:hover, .dotbtn.green.active{ background: var(--green); box-shadow: 0 0 14px -2px var(--green);}
+  .dotbtn.amber{ border-color: var(--amber); } .dotbtn.amber:hover, .dotbtn.amber.active{ background: var(--amber); box-shadow: 0 0 14px -2px var(--amber);}
+  .dotbtn.red{ border-color: var(--red); } .dotbtn.red:hover, .dotbtn.red.active{ background: var(--red); box-shadow: 0 0 14px -2px var(--red);}
+
+  .card[data-status="green"]{ border-color: var(--green); background: linear-gradient(180deg, var(--green-dim), var(--panel) 70%); }
+  .card[data-status="amber"]{ border-color: var(--amber); background: linear-gradient(180deg, var(--amber-dim), var(--panel) 70%); }
+  .card[data-status="red"]{ border-color: var(--red); background: linear-gradient(180deg, var(--red-dim), var(--panel) 70%); }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background: rgba(5,7,12,.72); backdrop-filter: blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:24px;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background: var(--panel-2); border:1px solid var(--border); border-radius: 20px;
+    max-width: 640px; width:100%; padding: 32px 32px 28px; box-shadow: 0 30px 80px -20px rgba(0,0,0,.7);
+    animation: pop .18s ease;
+  }
+  @keyframes pop{ from{ opacity:0; transform: scale(.96) translateY(6px);} to{opacity:1; transform:none;} }
+  .modal .modal-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom: 6px;}
+  .modal h2{ margin:0; font-size: 26px; font-weight:800; }
+  .modal .status-chip{ font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:5px 10px; border-radius:999px; white-space:nowrap; }
+  .modal .status-chip.green{ background: var(--green-dim); color: var(--green); border:1px solid var(--green);}
+  .modal .status-chip.amber{ background: var(--amber-dim); color: var(--amber); border:1px solid var(--amber);}
+  .modal .status-chip.red{ background: var(--red-dim); color: var(--red); border:1px solid var(--red);}
+  .modal .status-chip.grey{ background: rgba(255,255,255,.04); color: var(--text-dim); border:1px solid var(--border);}
+  .modal .section-label{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color: var(--accent); margin: 18px 0 6px; }
+  .modal p{ margin:0; line-height:1.6; font-size:16px; color: var(--text); }
+  .modal .example-box{ background: rgba(124,156,255,.07); border:1px solid var(--accent-dim); border-radius:12px; padding:14px 16px; font-size:15px; line-height:1.55; color:var(--text); }
+  .closebtn{
+    border:none; background: var(--panel); color:var(--text-dim); width:32px; height:32px; border-radius:50%;
+    cursor:pointer; font-size:16px; flex-shrink:0;
+  }
+  .closebtn:hover{ color:var(--text); background: var(--border); }
+
+  /* Panes (graph / agenda / index deep-dive) */
+  .pane{ display:none; }
+  .pane.show{ display:block; }
+  #gridView.hide{ display:none; }
+  #network{
+    width:100%; height: 620px; background: var(--panel); border:1px solid var(--border); border-radius: var(--radius);
+  }
+  .graph-caption{ color: var(--text-dim); font-size:13px; margin: 12px 4px 0; }
+
+  /* Agenda view */
+  .agenda-list{ display:flex; flex-direction:column; gap:10px; max-width: 880px; }
+  .agenda-row{
+    display:flex; gap:18px; align-items:flex-start; background: var(--panel); border:1px solid var(--border);
+    border-radius: 14px; padding: 14px 18px;
+  }
+  .agenda-row.now{ border-color: var(--accent); background: linear-gradient(180deg, rgba(124,156,255,.08), var(--panel) 70%); }
+  .agenda-time{
+    font-family:'JetBrains Mono',monospace; font-size:13px; color: var(--accent); font-weight:600;
+    white-space:nowrap; min-width: 108px; padding-top:2px;
+  }
+  .agenda-body h4{ margin:0 0 3px; font-size:15px; font-weight:700; }
+  .agenda-body p{ margin:0; font-size:13px; color: var(--text-dim); line-height:1.5; }
+  .agenda-tag{
+    display:inline-block; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+    background: var(--accent-dim); color:#dbe4ff; border-radius:6px; padding:2px 7px; margin-left:8px; vertical-align:middle;
+  }
+
+  /* Index deep-dive view */
+  .index-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 1050px){ .index-grid{ grid-template-columns: 1fr; } }
+  .index-card{ background: var(--panel); border:1px solid var(--border); border-radius: var(--radius); padding: 18px 18px 20px; }
+  .index-card h3{ margin:0 0 4px; font-size:18px; font-weight:800; }
+  .index-card .index-sub{ margin:0 0 12px; font-size:12.5px; color: var(--text-dim); }
+  .index-card svg{ width:100%; height:auto; background:#0d1220; border:1px solid var(--border); border-radius:10px; }
+  .param-row{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 10px; }
+  .param-chip{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; background: var(--panel-2); border:1px solid var(--border);
+    color: var(--accent); border-radius:7px; padding:3px 8px; font-weight:600;
+  }
+  .param-def{ font-size:12.5px; color: var(--text-dim); margin:0 0 6px; line-height:1.45; }
+  .param-def b{ color: var(--text); font-family:'JetBrains Mono',monospace; font-weight:700; }
+  .fullform{ font-size:12.5px; color: var(--text-dim); margin:0 0 12px; line-height:1.5; padding:8px 10px; background: var(--panel-2); border:1px solid var(--border); border-radius:8px; }
+  .fullform b{ color: var(--accent); }
+  .param-def .ex{ display:block; margin-top:3px; color: var(--text-dim); font-family:inherit; font-weight:400; }
+  .param-def .ex i{ color: var(--text); font-style:normal; font-weight:700; }
+  .param-def .full{ color: var(--accent); font-family:inherit; font-weight:600; }
+  .dial-note{ margin: 4px 4px 18px; max-width: 900px; font-size:13px; color: var(--text-dim); line-height:1.55; }
+  .dial-note table{ border-collapse:collapse; width:100%; margin-top:8px; }
+  .dial-note th, .dial-note td{ border:1px solid var(--border); padding:6px 9px; text-align:left; vertical-align:top; }
+  .dial-note th{ background: var(--panel-2); color: var(--text); }
+  .dial-note code, .dial-note b{ color: var(--text); }
+  .verdict{
+    margin-top:12px; padding-top:10px; border-top:1px dashed var(--border); font-size:12.5px; color: var(--text-dim); line-height:1.5;
+  }
+  .verdict b{ color: var(--text); }
+  .index-note{ color: var(--text-dim); font-size:13px; margin: 2px 4px 18px; max-width: 900px; line-height:1.55; }
+
+  /* Stats panel */
+  .stats-panel{ display:flex; flex-direction:column; gap:12px; margin: 0 0 22px; }
+  .stats-row{ background: var(--panel); border:1px solid var(--border); border-radius:14px; padding:12px 16px; }
+  .stats-row.live{ border-color: var(--accent-dim); }
+  .stats-row.locked{ opacity:.55; }
+  .stats-row-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .stats-row-head .rlabel{ font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color: var(--text-dim); }
+  .stats-row.live .stats-row-head .rlabel{ color: var(--accent); }
+  .stackbar{ display:flex; height:30px; border-radius:8px; overflow:hidden; border:1px solid var(--border); background: #0d1220; }
+  .stackbar .seg{ transition: width .35s ease; }
+  .seg.green{ background:var(--green);} .seg.amber{background:var(--amber);} .seg.red{background:var(--red);} .seg.none{background:var(--grey);}
+  .stats-counts{ display:flex; gap:16px; margin-top:8px; flex-wrap:wrap; }
+  .stats-counts span{ font-size:12.5px; color: var(--text-dim); font-weight:700; display:inline-flex; align-items:center; gap:6px; }
+  .stats-counts i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .stats-counts .g i{background:var(--green)} .stats-counts .a i{background:var(--amber)} .stats-counts .r i{background:var(--red)} .stats-counts .u i{background:var(--grey)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <h1>Confidence Check &amp; the Big Picture</h1>
+      <p>Show of hands on each term → mark red / amber / green → unpack the shaky ones → then watch them connect into the map we'll build over Day 1 &amp; Day 2.</p>
+    </div>
+    <span class="badge"><span class="dot"></span> First 15 minutes</span>
+  </header>
+
+  <div class="legend">
+    <span><i class="n"></i> Not rated yet</span>
+    <span><i class="g"></i> Green — confident</span>
+    <span><i class="a"></i> Amber — shaky</span>
+    <span><i class="r"></i> Red — new to me</span>
+  </div>
+
+  <div id="statsPanel" class="stats-panel"></div>
+
+  <div class="toolbar">
+    <button class="action" id="resetBtn">↺ Reset all</button>
+    <button class="action" id="lockRoundBtn">⏭ Lock this round &amp; start next</button>
+    <button class="action primary" id="revealBtn">🔗 Reveal the connections</button>
+    <button class="action" id="agendaBtn">📅 Agenda</button>
+    <button class="action" id="indexBtn">📐 Flat vs IVF-Flat vs HNSW</button>
+    <button class="action" id="backBtn" style="display:none;">← Back to terms</button>
+  </div>
+
+  <div id="gridView"></div>
+
+  <div id="graphView" class="pane">
+    <div id="network"></div>
+    <p class="graph-caption">Drag nodes to rearrange · scroll to zoom · click any node to reopen its explanation. Colors carry over from your class's live vote.</p>
+  </div>
+
+  <div id="agendaView" class="pane">
+    <div class="agenda-list">
+      <div class="agenda-row now">
+        <div class="agenda-time">9:00–9:15</div>
+        <div class="agenda-body"><h4>Warm-up: Confidence Check <span class="agenda-tag">You are here</span></h4><p>This page — vote on all 16 terms, unpack the shaky ones, reveal how they connect.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">9:15–9:30</div>
+        <div class="agenda-body"><h4>Opening hook</h4><p>Live demo of an AI agent confidently stating a false fact by merging two unrelated records — make the problem visceral before any theory.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">9:30–10:00</div>
+        <div class="agenda-body"><h4>Concept block 1 — Embeddings &amp; similarity search</h4><p>Live demo only, light narration, no coding yet. Students see why retrieval finds "similar," not "correct."</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">10:00–10:30</div>
+        <div class="agenda-body"><h4>Concept block 2 — RAG pipeline + where it breaks</h4><p>Live demo of the exact conflated answer. Lands the core lesson: fluent ≠ true.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">10:30–11:00</div>
+        <div class="agenda-body"><h4>Concept block 3 — Grounding the agent</h4><p>Same query, now graph-backed and correct. Shows the fix, motivates the reference-solution walkthrough.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">11:00–11:15</div>
+        <div class="agenda-body"><h4>Break</h4><p>Also a buffer for late arrivals / setup.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">11:15–11:45</div>
+        <div class="agenda-body"><h4>Reference solution walkthrough</h4><p>A finished solution, step by step, on a separate example dataset: the pattern registry, why look-alike fields are rejected, the public question results, and how to explain each outcome. Students follow on screen.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">11:45–12:25</div>
+        <div class="agenda-body"><h4>Day 2 problem statement + team formation</h4><p>Walk through the rubric and the submission deadline — teams leave knowing exactly what "done" looks like.</p></div>
+      </div>
+      <div class="agenda-row">
+        <div class="agenda-time">12:25–12:45</div>
+        <div class="agenda-body"><h4>Wrap</h4><p>Build-window logistics, Q&amp;A. No team should be unsure how to submit before they leave the room.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="indexView" class="pane">
+    <p class="index-note">All three answer the exact same question — "which stored vectors are closest to my query?" — they just trade off <b style="color:var(--text)">speed</b>, <b style="color:var(--text)">accuracy</b>, and <b style="color:var(--text)">memory</b> differently. Accuracy is measured as <b style="color:var(--text)">recall@k</b>: of the true k nearest records (what Flat returns), how many did the faster index also return? Recall@5 = 0.6 means it found 3 of the 5 true neighbours.</p>
+    <div class="index-grid">
+
+      <div class="index-card">
+        <h3>Flat Index</h3>
+        <p class="index-sub">Exhaustive search — compare the query to every single vector.</p>
+        <svg viewBox="0 0 260 190">
+          <line x1="40" y1="100" x2="100" y2="40" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="130" y2="70" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="160" y2="30" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="190" y2="60" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="210" y2="100" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="180" y2="130" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="150" y2="160" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="200" y2="150" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="230" y2="70" stroke="#3d4a7a" stroke-width="1"/>
+          <line x1="40" y1="100" x2="95" y2="110" stroke="#30c97a" stroke-width="2"/>
+          <line x1="40" y1="100" x2="100" y2="150" stroke="#30c97a" stroke-width="2"/>
+          <line x1="40" y1="100" x2="140" y2="100" stroke="#30c97a" stroke-width="2"/>
+          <circle cx="100" cy="40" r="5" fill="#9aa4bd"/>
+          <circle cx="130" cy="70" r="5" fill="#9aa4bd"/>
+          <circle cx="160" cy="30" r="5" fill="#9aa4bd"/>
+          <circle cx="190" cy="60" r="5" fill="#9aa4bd"/>
+          <circle cx="210" cy="100" r="5" fill="#9aa4bd"/>
+          <circle cx="180" cy="130" r="5" fill="#9aa4bd"/>
+          <circle cx="150" cy="160" r="5" fill="#9aa4bd"/>
+          <circle cx="200" cy="150" r="5" fill="#9aa4bd"/>
+          <circle cx="230" cy="70" r="5" fill="#9aa4bd"/>
+          <circle cx="95" cy="110" r="6" fill="#30c97a"/>
+          <circle cx="100" cy="150" r="6" fill="#30c97a"/>
+          <circle cx="140" cy="100" r="6" fill="#30c97a"/>
+          <path d="M40 92 L48 100 L40 108 L32 100 Z" fill="#7c9cff"/>
+          <text x="40" y="128" text-anchor="middle" font-size="9" fill="#7c9cff" font-family="JetBrains Mono, monospace">Q</text>
+          <text x="150" y="182" text-anchor="middle" font-size="9" fill="#9aa4bd" font-family="JetBrains Mono, monospace">compares against every point, every time</text>
+        </svg>
+        <div class="param-row"><span class="param-chip">k</span></div>
+        <p class="param-def"><b>k</b> — <span class="full">number of results to return</span> (the "k" in k-Nearest Neighbors). The only knob here: there's no approximation to tune.<span class="ex">Example: <i>k = 5</i> returns the 5 closest records.</span></p>
+        <div class="verdict"><b>Verdict:</b> 100% accurate, by definition. Cost grows linearly with dataset size — fine for thousands of vectors, too slow for billions.</div>
+      </div>
+
+      <div class="index-card">
+        <h3>IVF-Flat</h3>
+        <p class="index-sub">Cluster first, then only search the nearest few clusters.</p>
+        <p class="fullform"><b>IVF-Flat</b> = <b>I</b>nverted <b>F</b>ile index with <b>Flat</b> storage. "Inverted file" is the library term for a lookup from a label (here, a cluster) to the items filed under it. "Flat" means that inside a chosen cluster the records are compared exactly, one by one, as in the Flat index.</p>
+        <svg viewBox="0 0 260 190">
+          <ellipse cx="75" cy="55" rx="42" ry="36" fill="#30c97a" opacity="0.10" stroke="#30c97a" stroke-width="2"/>
+          <ellipse cx="190" cy="55" rx="40" ry="34" fill="#3a4257" opacity="0.10" stroke="#3a4257" stroke-dasharray="4 3" stroke-width="1.5"/>
+          <ellipse cx="75" cy="145" rx="42" ry="36" fill="#30c97a" opacity="0.10" stroke="#30c97a" stroke-width="2"/>
+          <ellipse cx="190" cy="145" rx="40" ry="34" fill="#3a4257" opacity="0.10" stroke="#3a4257" stroke-dasharray="4 3" stroke-width="1.5"/>
+
+          <line x1="35" y1="40" x2="75" y2="55" stroke="#30c97a" stroke-width="2"/>
+          <line x1="35" y1="40" x2="190" y2="55" stroke="#3a4257" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="35" y1="40" x2="75" y2="145" stroke="#30c97a" stroke-width="2"/>
+          <line x1="35" y1="40" x2="190" y2="145" stroke="#3a4257" stroke-width="1" stroke-dasharray="3 3"/>
+
+          <circle cx="60" cy="45" r="4" fill="#9aa4bd"/>
+          <circle cx="85" cy="65" r="4" fill="#9aa4bd"/>
+          <circle cx="68" cy="72" r="4" fill="#9aa4bd"/>
+          <circle cx="60" cy="130" r="4" fill="#9aa4bd"/>
+          <circle cx="88" cy="155" r="4" fill="#9aa4bd"/>
+          <circle cx="175" cy="45" r="4" fill="#3a4257"/>
+          <circle cx="205" cy="65" r="4" fill="#3a4257"/>
+          <circle cx="175" cy="150" r="4" fill="#3a4257"/>
+          <circle cx="205" cy="135" r="4" fill="#3a4257"/>
+
+          <path d="M75 47 L83 55 L75 63 L67 55 Z" fill="#30c97a"/>
+          <path d="M190 47 L198 55 L190 63 L182 55 Z" fill="#3a4257"/>
+          <path d="M75 137 L83 145 L75 153 L67 145 Z" fill="#30c97a"/>
+          <path d="M190 137 L198 145 L190 153 L182 145 Z" fill="#3a4257"/>
+
+          <path d="M27 32 L43 40 L27 48 L19 40 Z" fill="#7c9cff"/>
+          <text x="35" y="22" text-anchor="middle" font-size="9" fill="#7c9cff" font-family="JetBrains Mono, monospace">Q</text>
+          <text x="130" y="182" text-anchor="middle" font-size="9" fill="#9aa4bd" font-family="JetBrains Mono, monospace">nprobe = 2 of 4 clusters actually searched</text>
+        </svg>
+        <div class="param-row"><span class="param-chip">nlist</span><span class="param-chip">nprobe</span><span class="param-chip">k</span></div>
+        <p class="param-def"><b>nlist</b> — <span class="full">number of lists</span> (a "list" is one cluster). How many clusters the data is split into when the index is built.<span class="ex">Example: our demo has 120 records and <i>nlist = 8</i>, so each cluster holds about 15 records. For big data a common start is about the square root of the record count: 1 million vectors, about 1,000 clusters.</span></p>
+        <p class="param-def"><b>nprobe</b> — <span class="full">number of probes</span>: how many of those clusters are visited per query. The main speed/accuracy dial.<span class="ex">Example: with <i>nlist = 8</i>, <i>nprobe = 1</i> searches about 1/8 of the data (fast; recall@5 was 0.64 in our rehearsal). <i>nprobe = 8</i> visits every cluster, so it behaves like Flat (recall 1.0).</span></p>
+        <p class="param-def"><b>k</b> — <span class="full">number of results to return</span>.<span class="ex">Example: <i>k = 5</i> returns the 5 closest records found.</span></p>
+        <div class="verdict"><b>Verdict:</b> much faster than Flat. Risk: if the true nearest neighbor's cluster isn't one of the <b style="color:var(--text)">nprobe</b> clusters searched, it's simply missed — no error, just a quiet wrong answer.</div>
+      </div>
+
+      <div class="index-card">
+        <h3>HNSW</h3>
+        <p class="index-sub">A layered graph of shortcuts — jump far on top, fine-tune at the bottom.</p>
+        <p class="fullform"><b>HNSW</b> = <b>H</b>ierarchical <b>N</b>avigable <b>S</b>mall <b>W</b>orld. <i>Small world</i>: any point can reach any other in a few hops, like "six degrees of separation". <i>Navigable</i>: you can find the way by always stepping to the neighbour closest to your target. <i>Hierarchical</i>: several layers, sparse at the top (long jumps) and dense at the bottom (fine steps).</p>
+        <svg viewBox="0 0 260 210">
+          <text x="4" y="28" font-size="9" fill="#9aa4bd" font-family="JetBrains Mono, monospace">L2</text>
+          <text x="4" y="112" font-size="9" fill="#9aa4bd" font-family="JetBrains Mono, monospace">L1</text>
+          <text x="4" y="196" font-size="9" fill="#9aa4bd" font-family="JetBrains Mono, monospace">L0</text>
+
+          <line x1="60" y1="30" x2="130" y2="30" stroke="#3a4257" stroke-width="1.5"/>
+          <line x1="130" y1="30" x2="200" y2="30" stroke="#3a4257" stroke-width="1.5"/>
+
+          <line x1="30" y1="110" x2="72" y2="110" stroke="#3a4257" stroke-width="1.5"/>
+          <line x1="72" y1="110" x2="114" y2="110" stroke="#3a4257" stroke-width="1.5"/>
+          <line x1="114" y1="110" x2="156" y2="110" stroke="#3a4257" stroke-width="1.5"/>
+          <line x1="156" y1="110" x2="198" y2="110" stroke="#3a4257" stroke-width="1.5"/>
+          <line x1="198" y1="110" x2="230" y2="110" stroke="#3a4257" stroke-width="1.5"/>
+
+          <line x1="20" y1="190" x2="48" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="48" y1="190" x2="76" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="76" y1="190" x2="104" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="104" y1="190" x2="132" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="132" y1="190" x2="160" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="160" y1="190" x2="188" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="188" y1="190" x2="216" y2="190" stroke="#3a4257" stroke-width="1"/>
+          <line x1="216" y1="190" x2="244" y2="190" stroke="#3a4257" stroke-width="1"/>
+
+          <line x1="60" y1="36" x2="60" y2="104" stroke="#262e42" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="130" y1="36" x2="130" y2="104" stroke="#262e42" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="72" y1="116" x2="76" y2="184" stroke="#262e42" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="156" y1="116" x2="160" y2="184" stroke="#262e42" stroke-width="1" stroke-dasharray="3 3"/>
+
+          <path d="M60 30 L130 30" stroke="#7c9cff" stroke-width="2.5" fill="none"/>
+          <path d="M130 30 L130 104" stroke="#7c9cff" stroke-width="2.5" fill="none" stroke-dasharray="1 0"/>
+          <path d="M130 110 L156 110" stroke="#7c9cff" stroke-width="2.5" fill="none"/>
+          <path d="M156 116 L160 184" stroke="#7c9cff" stroke-width="2.5" fill="none"/>
+          <path d="M160 190 L188 190" stroke="#7c9cff" stroke-width="2.5" fill="none"/>
+
+          <circle cx="60" cy="30" r="6" fill="#7c9cff"/>
+          <circle cx="130" cy="30" r="5" fill="#9aa4bd"/>
+          <circle cx="200" cy="30" r="5" fill="#9aa4bd"/>
+
+          <circle cx="30" cy="110" r="5" fill="#9aa4bd"/>
+          <circle cx="72" cy="110" r="5" fill="#9aa4bd"/>
+          <circle cx="114" cy="110" r="5" fill="#9aa4bd"/>
+          <circle cx="156" cy="110" r="5" fill="#9aa4bd"/>
+          <circle cx="198" cy="110" r="5" fill="#9aa4bd"/>
+          <circle cx="230" cy="110" r="5" fill="#9aa4bd"/>
+
+          <circle cx="20" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="48" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="76" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="104" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="132" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="160" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="188" cy="190" r="6" fill="#30c97a"/>
+          <circle cx="216" cy="190" r="4" fill="#9aa4bd"/>
+          <circle cx="244" cy="190" r="4" fill="#9aa4bd"/>
+
+          <text x="60" y="16" text-anchor="middle" font-size="8" fill="#7c9cff" font-family="JetBrains Mono, monospace">entry</text>
+          <text x="188" y="203" text-anchor="middle" font-size="8" fill="#30c97a" font-family="JetBrains Mono, monospace">match</text>
+        </svg>
+        <div class="param-row"><span class="param-chip">M</span><span class="param-chip">efConstruction</span><span class="param-chip">efSearch (ef)</span><span class="param-chip">k</span></div>
+        <p class="param-def"><b>M</b> — <span class="full">maximum number of connections (links)</span> each point keeps to its neighbours. Higher M = denser graph, more memory.<span class="ex">Example: <i>M = 16</i> (our demo) lets each point link to up to 16 neighbours. <i>M = 4</i> gives a thin graph: small, but it can miss. <i>M = 48</i> gives a dense one: accurate, but it uses more memory.</span></p>
+        <p class="param-def"><b>efConstruction</b> — <span class="full">exploration factor during construction</span> (ef_construction): when a point is added, how many candidate neighbours are examined before its M links are chosen. Higher = better graph, slower build (a one-time cost).<span class="ex">Example: <i>efConstruction = 200</i> (our demo) builds a better graph than <i>20</i>, at the price of a slower build. You pay it once.</span></p>
+        <p class="param-def"><b>efSearch (ef)</b> — <span class="full">exploration factor during search</span>: the size of the shortlist of candidates kept while walking the graph for one query. It must be at least k. The main speed/accuracy dial, same role as <b style="color:var(--text)">nprobe</b> above.<span class="ex">Example: with <i>k = 5</i>, <i>ef = 10</i> keeps a shortlist of 10 (fast, may miss one). <i>ef = 100</i> keeps 100 (slower, nearly exact). Our demo uses <i>ef = 50</i>.</span></p>
+        <p class="param-def"><b>k</b> — <span class="full">number of results to return</span>.<span class="ex">Example: <i>k = 5</i> returns the 5 closest records found.</span></p>
+        <div class="verdict"><b>Verdict:</b> fast <i>and</i> accurate for most real workloads — the default choice in most production vector databases. Costs more memory than IVF because it stores the graph's edges.</div>
+      </div>
+
+    </div>
+    <div class="dial-note">
+      <b style="color:var(--text)">Which setting do you change, and when?</b> Some settings are fixed once when the index is built. Others you can change on every query.
+      <table>
+        <tr><th>Index</th><th>Set once, at build time</th><th>Change at query time</th></tr>
+        <tr><td>Flat</td><td>nothing</td><td><code>k</code></td></tr>
+        <tr><td>IVF-Flat</td><td><code>nlist</code> (number of lists)</td><td><code>nprobe</code> (number of probes), <code>k</code></td></tr>
+        <tr><td>HNSW</td><td><code>M</code> (max connections), <code>efConstruction</code></td><td><code>efSearch</code> / <code>ef</code>, <code>k</code></td></tr>
+      </table>
+      <p style="margin:8px 0 0">Raising <code>nprobe</code> or <code>ef</code> makes a query slower and more accurate; lowering them does the reverse. Raising <code>nlist</code>, <code>M</code> or <code>efConstruction</code> changes the index itself, so you rebuild it.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle"></h2>
+      <span class="status-chip" id="modalChip"></span>
+    </div>
+    <div class="section-label">Simple explanation</div>
+    <p id="modalDesc"></p>
+    <div class="section-label">Example</div>
+    <div class="example-box" id="modalExample"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:22px;">
+      <button class="action" id="modalPictureLink" style="display:none; padding:9px 14px; font-size:13px;">📐 See it pictured →</button>
+      <button class="closebtn" id="closeBtn">✕</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TERMS = [
+  { id: 1, label: "Embeddings",
+    desc: "A way to turn a word, sentence, or thing into a list of numbers — like giving it coordinates on a map — so a computer can measure how similar two things are, not just whether they're spelled the same.",
+    example: "Imagine placing every fruit on a map based on taste. Apple and pear end up close together. Apple and chili pepper end up far apart. That map position is the fruit's 'embedding.'" },
+  { id: 2, label: "Vector Search",
+    desc: "Once everything has a map position (an embedding), vector search finds the items whose positions are closest to your question's position — it finds what's similar, not what's an exact text match.",
+    example: "You ask for 'something juicy and sweet.' The system doesn't search for those exact words — it finds the nearest points on the map, which turn out to be apple and pear." },
+  { id: 3, label: "Cosine Similarity",
+    desc: "A way to compare two arrows by their DIRECTION, ignoring how long they are. Two arrows pointing almost the same way count as 'similar' even if one is much longer.",
+    example: "Two students walking the same direction to school are 'going the same way' even if one takes giant steps and one takes tiny steps. Cosine similarity only cares about the direction, not the stride." },
+  { id: 4, label: "Euclidean Distance",
+    desc: "The plain, straight-line 'ruler' distance between two points — the same way you'd measure distance in real life with a tape measure.",
+    example: "The straight-line distance between your house and your school, if you could fly directly there ignoring roads and turns." },
+  { id: 5, label: "KNN (k-Nearest Neighbors)",
+    desc: "Look at the 'k' closest points to you and let them answer the question — often by majority vote.",
+    example: "To guess what cuisine a new restaurant serves, you look at its 5 closest restaurants on the street and go with whatever most of them serve." },
+  { id: 6, label: "Flat Index",
+    desc: "The simplest possible way to search: compare your question to EVERY single item, one by one, with no shortcuts. Always correct, but gets slow as the data grows.",
+    example: "Finding your friend in a packed stadium by checking every single seat, one at a time, until you find them." },
+  { id: 7, label: "IVF-Flat",
+    desc: "Short for Inverted File index with Flat storage. A faster shortcut: first sort all items into rough neighborhoods (clusters), then only carefully search inside the few neighborhoods closest to your question.",
+    example: "Instead of ringing every doorbell in the city to find your friend, you first guess which neighborhood they live in, then only ring doorbells there." },
+  { id: 8, label: "HNSW",
+    desc: "Short for Hierarchical Navigable Small World. Builds a multi-layer map of 'highways' and 'local streets' connecting similar items, so a search can jump close fast on the highways, then fine-tune on local streets.",
+    example: "Like taking a flight to get to the right city quickly, then walking the last few blocks on foot to find the exact house." },
+  { id: 9, label: "RAG (Retrieval-Augmented Generation)",
+    desc: "Before answering, the AI first fetches the relevant notes or documents, then writes its answer using those notes — instead of answering purely from memory.",
+    example: "An open-book exam. Instead of answering from memory alone, you flip to the relevant page in the textbook first, then write your answer using what's actually on that page." },
+  { id: 10, label: "Graph RAG",
+    desc: "Same open-book idea as RAG, but the 'notes' are organized as a map of connected facts (a graph) instead of loose pages — so the AI can check whether two facts are actually linked, not just guess from vague similarity.",
+    example: "Instead of a messy stack of loose notes, you have a family tree. You can trace exactly how two people are related, instead of guessing just because their names sound alike." },
+  { id: 11, label: "Knowledge Graph",
+    desc: "The actual map of real, specific facts — real people, real events, and the real connections between them — built using the rules below (the ontology).",
+    example: "If the rulebook says 'players can trade cards,' the knowledge graph is the real record that 'Raj traded his Pikachu card to Meera on Monday.'" },
+  { id: 12, label: "Ontology",
+    desc: "The rulebook that defines what KINDS of things are allowed to exist, and what kinds of connections between them make sense — decided before you fill in any real facts.",
+    example: "A board game's rulebook might say 'a Player can trade a Card,' but never 'a Card can trade a Player.' The ontology sets which relationships are even valid." },
+  { id: 13, label: "Chunking",
+    desc: "Breaking a long document into smaller pieces before turning it into embeddings — because retrieving one giant document isn't useful; you want to retrieve just the relevant part.",
+    example: "Instead of handing someone an entire textbook to answer one question, you tear out just the one relevant page and hand them that page." },
+  { id: 14, label: "Vector Database",
+    desc: "The system that actually stores all the embeddings and answers 'which ones are closest to this new point?' — the engine underneath vector search, which picks an indexing strategy to answer that question quickly.",
+    example: "Like a library's catalog system — you don't walk every aisle yourself; the catalog tells you which shelf to go to, using whatever lookup method it has set up." },
+  { id: 15, label: "Hallucination",
+    desc: "When an AI states something fluently and confidently that isn't actually true — often by blending two real but unrelated facts into one false one.",
+    example: "Asked whether a scholarship paid for a tuition bill, the AI confidently says 'yes' just because both mention money and the same semester — even though nothing in the data actually links them." },
+  { id: 16, label: "Entity Extraction (NER)",
+    desc: "Automatically picking out the specific named things in a piece of text — a person, an ID number, a ticket code — so a system knows WHICH exact thing is being talked about, not just what category.",
+    example: "Reading 'Student S006's room change was approved' and pulling out 'S006' as a specific, trackable entity — rather than just noting the sentence is about 'a student.'" },
+];
+
+const EDGES = [
+  { from: 13, to: 1, label: "PRECEDES" },
+  { from: 1, to: 14, label: "STORED_IN" },
+  { from: 14, to: 6, label: "INDEXED_BY" },
+  { from: 14, to: 7, label: "INDEXED_BY" },
+  { from: 14, to: 8, label: "INDEXED_BY" },
+  { from: 14, to: 2, label: "QUERIED_BY" },
+  { from: 2, to: 3, label: "CAN_USE" },
+  { from: 2, to: 4, label: "CAN_USE" },
+  { from: 2, to: 5, label: "RANKS_WITH" },
+  { from: 2, to: 9, label: "POWERS" },
+  { from: 9, to: 15, label: "CAN_STILL_CAUSE" },
+  { from: 9, to: 10, label: "EXTENDED_BY" },
+  { from: 10, to: 15, label: "REDUCES" },
+  { from: 10, to: 16, label: "RELIES_ON" },
+  { from: 16, to: 11, label: "BUILDS" },
+  { from: 11, to: 12, label: "STRUCTURED_BY" },
+];
+
+const state = {};
+TERMS.forEach(t => state[t.id] = "none");
+const roundSnapshots = []; // locked rounds: [{green,amber,red,none}, ...]
+
+const gridView = document.getElementById('gridView');
+const overlay = document.getElementById('overlay');
+
+function computeCounts(){
+  const c = { green:0, amber:0, red:0, none:0 };
+  TERMS.forEach(t => c[state[t.id]]++);
+  return c;
+}
+
+function statsRowHTML(counts, label, isLive){
+  const total = TERMS.length;
+  const pct = k => (counts[k] / total * 100).toFixed(1);
+  return `
+    <div class="stats-row ${isLive ? 'live' : 'locked'}">
+      <div class="stats-row-head">
+        <span class="rlabel">${label}</span>
+      </div>
+      <div class="stackbar">
+        <div class="seg green" style="width:${pct('green')}%" title="Green: ${counts.green}"></div>
+        <div class="seg amber" style="width:${pct('amber')}%" title="Amber: ${counts.amber}"></div>
+        <div class="seg red" style="width:${pct('red')}%" title="Red: ${counts.red}"></div>
+        <div class="seg none" style="width:${pct('none')}%" title="Not rated: ${counts.none}"></div>
+      </div>
+      <div class="stats-counts">
+        <span class="g"><i></i>Green: ${counts.green}</span>
+        <span class="a"><i></i>Amber: ${counts.amber}</span>
+        <span class="r"><i></i>Red: ${counts.red}</span>
+        <span class="u"><i></i>Not rated: ${counts.none}</span>
+      </div>
+    </div>`;
+}
+
+function renderStats(){
+  const panel = document.getElementById('statsPanel');
+  let html = '';
+  roundSnapshots.forEach((snap, i) => {
+    html += statsRowHTML(snap, 'Round ' + (i + 1) + ' — locked', false);
+  });
+  const liveLabel = roundSnapshots.length ? `Round ${roundSnapshots.length + 1} — live` : 'Live tally';
+  html += statsRowHTML(computeCounts(), liveLabel, true);
+  panel.innerHTML = html;
+}
+
+function renderGrid(){
+  gridView.innerHTML = "";
+  TERMS.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.status = state[t.id];
+    card.dataset.id = t.id;
+
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = '#' + String(t.id).padStart(2,'0');
+    card.appendChild(num);
+
+    const h3 = document.createElement('h3');
+    h3.textContent = t.label;
+    card.appendChild(h3);
+
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.textContent = 'Click card for explanation';
+    card.appendChild(hint);
+
+    const dots = document.createElement('div');
+    dots.className = 'dots';
+    ['green','amber','red'].forEach(color => {
+      const b = document.createElement('button');
+      b.className = 'dotbtn ' + color + (state[t.id]===color ? ' active' : '');
+      b.title = color;
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state[t.id] = (state[t.id] === color) ? 'none' : color;
+        renderGrid();
+        renderStats();
+      });
+      dots.appendChild(b);
+    });
+    card.appendChild(dots);
+
+    card.addEventListener('click', () => openModal(t.id));
+    gridView.appendChild(card);
+  });
+}
+
+const INDEX_TERM_IDS = [6, 7, 8]; // Flat Index, IVF-Flat, HNSW
+
+function openModal(id){
+  const t = TERMS.find(x => x.id === id);
+  document.getElementById('modalTitle').textContent = t.label;
+  document.getElementById('modalDesc').textContent = t.desc;
+  document.getElementById('modalExample').textContent = t.example;
+  const chip = document.getElementById('modalChip');
+  const st = state[id];
+  chip.className = 'status-chip ' + (st === 'none' ? 'grey' : st);
+  chip.textContent = st === 'none' ? 'Not rated' : st === 'green' ? 'Confident' : st === 'amber' ? 'Shaky' : 'New to me';
+
+  const pictureLink = document.getElementById('modalPictureLink');
+  pictureLink.style.display = INDEX_TERM_IDS.includes(id) ? 'inline-flex' : 'none';
+
+  overlay.classList.add('show');
+}
+document.getElementById('closeBtn').addEventListener('click', () => overlay.classList.remove('show'));
+overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('show'); });
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  TERMS.forEach(t => state[t.id] = 'none');
+  renderGrid();
+  renderStats();
+});
+
+document.getElementById('lockRoundBtn').addEventListener('click', () => {
+  roundSnapshots.push(computeCounts());
+  TERMS.forEach(t => state[t.id] = 'none');
+  renderGrid();
+  renderStats();
+});
+
+const statusColor = { none:'#3a4257', green:'#30c97a', amber:'#f2a93b', red:'#ef5a6f' };
+
+let network = null;
+function buildGraph(){
+  const nodes = TERMS.map(t => ({
+    id: t.id,
+    label: t.label,
+    shape: 'ellipse',
+    font: { color:'#e7eaf2', size:16, face:'Manrope', bold:{color:'#e7eaf2'} },
+    color: {
+      background: statusColor[state[t.id]] === '#3a4257' ? '#1b2131' : statusColor[state[t.id]] + '22',
+      border: statusColor[state[t.id]],
+      highlight: { background: statusColor[state[t.id]]+'33', border: statusColor[state[t.id]] }
+    },
+    borderWidth: 3,
+    margin: 14,
+  }));
+  const edges = EDGES.map((e,i) => ({
+    id: i, from: e.from, to: e.to, label: e.label, arrows: 'to',
+    font: { color:'#9aa4bd', size:11, strokeWidth:0, align:'middle' },
+    color: { color:'#3a4257', highlight:'#7c9cff' },
+    smooth: { type:'curvedCW', roundness: 0.15 }
+  }));
+
+  const container = document.getElementById('network');
+  const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+  const options = {
+    layout: { hierarchical: { direction: 'LR', sortMethod: 'directed', levelSeparation: 220, nodeSpacing: 90, treeSpacing: 40 } },
+    physics: false,
+    interaction: { hover: true, zoomView: true, dragView: true },
+    nodes: { shadow: true },
+    edges: { shadow: false, labelHighlightBold: false }
+  };
+  if(network) network.destroy();
+  network = new vis.Network(container, data, options);
+  network.on('click', (params) => {
+    if(params.nodes.length > 0){ openModal(params.nodes[0]); }
+  });
+}
+
+function showView(view){
+  document.getElementById('gridView').classList.toggle('hide', view !== 'grid');
+  document.getElementById('graphView').classList.toggle('show', view === 'graph');
+  document.getElementById('agendaView').classList.toggle('show', view === 'agenda');
+  document.getElementById('indexView').classList.toggle('show', view === 'index');
+  document.getElementById('revealBtn').style.display = view === 'grid' ? 'inline-flex' : 'none';
+  document.getElementById('agendaBtn').style.display = view === 'grid' ? 'inline-flex' : 'none';
+  document.getElementById('indexBtn').style.display = view === 'grid' ? 'inline-flex' : 'none';
+  document.getElementById('resetBtn').style.display = view === 'grid' ? 'inline-flex' : 'none';
+  document.getElementById('backBtn').style.display = view === 'grid' ? 'none' : 'inline-flex';
+  if(view === 'graph') buildGraph();
+  overlay.classList.remove('show');
+}
+
+document.getElementById('revealBtn').addEventListener('click', () => showView('graph'));
+document.getElementById('agendaBtn').addEventListener('click', () => showView('agenda'));
+document.getElementById('indexBtn').addEventListener('click', () => showView('index'));
+document.getElementById('backBtn').addEventListener('click', () => showView('grid'));
+document.getElementById('modalPictureLink').addEventListener('click', () => showView('index'));
+
+renderGrid();
+renderStats();
+</script>
+</body>
+</html>
